@@ -1,0 +1,36 @@
+services:
+  cassandra:
+    image: cassandra:4.1
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    volumes:
+      - ./init.cql:/init.cql
+    networks:
+      - student-net
+    healthcheck:
+      test: [ "CMD", "cqlsh", "-e", "DESCRIBE KEYSPACES" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: student-management-backend
+    container_name: student-backend
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      - QUARKUS_CASSANDRA_CONTACT_POINTS=cassandra:9042
+      - QUARKUS_CASSANDRA_LOCAL_DATACENTER=datacenter1
+      - QUARKUS_CASSANDRA_KEYSPACE=student_keyspace
+    networks:
+      - student-net
+
+networks:
+  student-net:
