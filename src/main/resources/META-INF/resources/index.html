@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Student Management System</title>
+    <style>
+        body {
+         font-family: Arial;
+         margin:0;
+         background: #f4f6f8;
+          }
+        header {
+         background: #222f3e;
+         color:white;
+         padding:1em;
+         text-align:center;
+         }
+        nav {
+         display:flex;
+         gap:1em;
+         justify-content:flex-start;
+         padding:1em;
+         background:#576574;
+         }
+        nav button {
+         background:#8395a7;
+         color:white;
+         border:none;
+         padding:0.5em 1em;
+         cursor:pointer;
+         }
+        nav button.hidden, section.hidden {
+        display: none;
+        }
+        main {
+        max-width: 1100px;
+        margin:auto;
+        padding:2em;
+        }
+        section {
+         margin-bottom:2em;
+         }
+        h2 {
+        color:#2d3436;
+        }
+        form {
+         background:white;
+         padding:1em;
+         border-radius:8px;
+         box-shadow:0 0 5px rgba(0,0,0,0.1);
+         }
+        label {
+         display:block;
+         margin-top:0.5em;
+         }
+        input, select, button {
+        width:100%;
+        padding:0.5em;
+        margin-top:0.3em;
+        }
+        button {
+        background:#10ac84;
+        color:white;
+        border:none;
+        cursor:pointer;
+        margin-top:1em;
+        }
+        .card {
+        background:white;
+        padding:1em;
+        border-radius:8px;
+        box-shadow:0 0 6px rgba(0,0,0,0.1);
+        margin-top:1em;
+        }
+        table {
+        width:100%;
+        border-collapse:collapse;
+        margin-top:1em;
+        }
+        th,
+        td {
+        border:1px solid #ccc;
+        padding:0.6em;
+        text-align:left;
+        }
+        th {
+        background:#2d3436;
+        color:white;
+        }
+     .toggle-btn {
+    float: right;
+    background: #ffffff;
+    color: #2d3436;
+    border: none;
+    width: 36px;
+    height: 36px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -6px;
+}
+.card h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.card {
+    overflow-x: auto;
+    max-width: 100%;
+}
+
+.card table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+main {
+    max-width: 1100px;
+    margin: auto;
+    padding: 2em;
+    overflow-x: auto;
+}
+
+.card.collapsed form,
+.card.collapsed table,
+.card.collapsed button:not(.toggle-btn),
+.card.collapsed > div,
+.card.collapsed > form,
+.card.collapsed > table {
+    display: none;
+}
+          input[readonly] {
+        background-color: #eee;
+        color: #555;
+    }
+  .greeting {
+    text-align: center;
+    font-weight: 800;
+    color: #2c3e50;
+    padding: 0.5em 1em;
+    margin-bottom: 1em;
+    font-size: 1.1em;
+    background: #ecf0f1;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+    </style>
+</head>
+<body>
+<header><h1>Student Management System</h1></header>
+<nav>
+    <button id="logout-btn" class="hidden" style="margin-left:auto;">Logout</button>
+</nav>
+<main>
+    <section id="login-sec">
+        <h2>Login</h2>
+        <form id="login-form">
+            <label>ID</label><input name="id" required/>
+            <label>Password</label><input type="password" name="password" required/>
+            <button type="submit">Login</button>
+            <div id="login-msg" style="color:red;margin-top:0.5em;"></div>
+        </form>
+    </section>
+
+    <!-- ADMIN DASHBOARD -->
+    <section id="admin-dash" class="hidden">
+        <div class="greeting" id="admin-greeting"></div>
+        <h2>Admin Dashboard</h2>
+        <div class="card">
+            <h3>Add Teacher
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="admin-add-teacher">
+                <input name="id" pattern="T[0-9]{4}" maxlength="5" minlength="5" required/>
+                <small>Teacher ID format: T1234 (TEACHER'S ID MUST CONTAIN 5 CHARACTERS)</small>
+                <label>Name</label><input name="name" required/>
+                <label>Password</label><input type="password" name="password" value="teacherpass1" disabled/>
+                <button type="submit">Add Teacher</button>
+                <div id="admin-add-teacher-msg"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>View All Teachers
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <button id="admin-view-teachers">Load</button>
+            <table id="admin-teacher-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Password</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>View One Teacher
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="admin-view-one-teacher">
+                <label>ID</label><input name="id" required/>
+                <button type="submit">View</button>
+            </form>
+            <table id="admin-teacher-one-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Password</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Delete Teacher
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="admin-delete-teacher">
+                <label>ID</label><input name="id" required/>
+                <button type="submit">Delete</button>
+                <div id="admin-del-teacher-msg"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Add Student
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="admin-add-student">
+                <label>ID</label><input name="id" pattern="S[0-9]{4}" maxlength="5" minlength="5" required/>
+                <small>Student ID format: S1234 (STUDENT ID MUST CONTAIN 5 CHARACTERS)</small>
+                <label>Name</label><input name="name" required/>
+                <label>Physics</label><input name="subject1" type="number" min="0" max="100" required/>
+                <label>Chemistry</label><input name="subject2" type="number" min="0" max="100" required/>
+                <label>Maths</label><input name="subject3" type="number" min="0" max="100" required/>
+                <label>Password</label><input name="password" type="password" value="pass1" disabled/>
+                <button type="submit">Add</button>
+                <div id="admin-add-student-msg"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>View All Students
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <button id="admin-view-students">Load</button>
+            <table id="admin-student-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Physics</th>
+                    <th>Chemistry</th>
+                    <th>Maths</th>
+                    <th>Total</th>
+                    <th>Result</th>
+                    <th>Rank</th>
+                </tr>
+                </thead>
+
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>View One Student
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="admin-view-one-student">
+                <label>ID</label><input name="id" required/>
+                <button type="submit">View</button>
+            </form>
+            <table id="admin-one-stu-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Physics</th>
+                    <th>Chemistry</th>
+                    <th>Maths</th>
+                    <th>Total</th>
+                    <th>Result</th>
+                    <th>Rank</th>
+                </tr>
+                </thead>
+
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Update Student
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="admin-update-student">
+                <label>ID</label><input name="id" required/>
+                <label>Name</label><input name="name"/>
+                <label>Physics</label><input name="subject1" type="number"/>
+                <label>Chemistry</label><input name="subject2" type="number"/>
+                <label>Maths</label><input name="subject3" type="number"/>
+                <button type="submit">Update</button>
+                <div id="admin-update-student-msg"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Delete Student
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="admin-delete-student">
+                <label>ID</label><input name="id" required/>
+                <button type="submit">Delete</button>
+                <div id="admin-del-student-msg"></div>
+            </form>
+        </div>
+    </section>
+    <!-- TEACHER DASHBOARD -->
+    <section id="teacher-dash" class="hidden">
+        <div class="greeting" id="teacher-greeting"></div>
+        <h2>Teacher Dashboard</h2>
+
+
+        <div class="card">
+            <h3>Add Student
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="teacher-add-student">
+                <label>ID</label><input name="id" pattern="S[0-9]{4}" maxlength="5" minlength="5" required/>
+                <small>Student ID format: S1234 (STUDENT ID MUST CONTAIN 5 CHARACTERS)</small>
+                <label>Name</label><input name="name" required/>
+                <label>Physics</label><input name="subject1" type="number" min="0" max="100" required/>
+                <label>Chemistry</label><input name="subject2" type="number" min="0" max="100" required/>
+                <label>Maths</label><input name="subject3" type="number" min="0" max="100" required/>
+                <label>Password</label><input name="password" type="password" value="pass1" disabled/>
+                <button type="submit">Add</button>
+                <div id="teacher-add-msg"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>View All Students
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <button id="teacher-view-all">Load</button>
+            <table id="teacher-students-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Physics</th>
+                    <th>Chemistry</th>
+                    <th>Maths</th>
+                    <th>Total</th>
+                    <th>Result</th>
+                    <th>Rank</th>
+                </tr>
+                </thead>
+
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>View One Student
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="teacher-view-one">
+                <label>ID</label><input name="id" required/>
+                <button type="submit">View</button>
+            </form>
+            <table id="teacher-view-one-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Physics</th>
+                    <th>Chemistry</th>
+                    <th>Maths</th>
+                    <th>Total</th>
+                    <th>Result</th>
+                    <th>Rank</th>
+                </tr>
+                </thead>
+
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>Update Student
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="teacher-update-student">
+                <label>ID</label><input name="id" required/>
+                <label>Name</label><input name="name"/>
+                <label>Physics</label><input name="subject1" type="number"/>
+                <label>Chemistry</label><input name="subject2" type="number"/>
+                <label>Maths</label><input name="subject3" type="number"/>
+                <button type="submit">Update</button>
+                <div id="teacher-update-msg"></div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Delete Student
+                <button class="toggle-btn" type="button" aria-expanded="true">−</button>
+            </h3>
+            <form id="teacher-delete-student">
+                <label>ID</label><input name="id" required/>
+                <button type="submit">Delete</button>
+                <div id="teacher-delete-msg"></div>
+            </form>
+        </div>
+    </section>
+
+    <!-- STUDENT DASHBOARD -->
+    <section id="student-dash" class="hidden">
+        <div class="greeting" id="student-greeting"></div>
+        <h2>Your Information</h2>
+        <table id="student-info-table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Physics</th>
+                <th>Chemistry</th>
+                <th>Maths</th>
+                <th>Total</th>
+                <th>Result</th>
+                <th>Rank</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+</main>
+<script>
+    const qs = sel => document.querySelector(sel);
+    const hideAll = () => ['login-sec','admin-dash','teacher-dash','student-dash'].forEach(id => qs('#'+id).classList.add('hidden'));
+    const show = id => qs(id).classList.remove('hidden');
+    const me = Object.fromEntries(new URLSearchParams(location.search).entries());
+
+
+    function safeFixed(num, digits=2) {
+      if (typeof num === 'number') return num.toFixed(digits);
+      return 'N/A';
+    }
+
+    async function checkAuth(res) {
+      if (res.status === 401) {
+        alert('Unauthorized. Please login again.');
+        location.href = '/';
+        return false;
+      }
+      return true;
+    }
+    if (me.id && me.role) {
+  hideAll();
+  show(`#${me.role}-dash`);
+  qs('#logout-btn')?.classList.remove('hidden');
+
+ // Set greeting
+  (async () => {
+    if (me.role === 'admin') {
+      qs('#admin-greeting').textContent = 'Hello, Admin!';
+    }else if (me.role === 'teacher') {
+  const res = await fetch(`/teacher/teacher?id=${encodeURIComponent(me.id)}&teacherId=${encodeURIComponent(me.id)}&role=teacher`);
+  if (res.ok) {
+    const t = await res.json();
+    qs('#teacher-greeting').textContent = `Hello, ${t.name} !`;
+  } else {
+    qs('#teacher-greeting').textContent = `Hello, Teacher!`;
+  }
+}
+ else if (me.role === 'student') {
+      const res = await fetch(`/student/me?id=${encodeURIComponent(me.id)}&role=student`);
+      if (res.ok) {
+        const s = await res.json();
+        qs('#student-greeting').textContent = `Hello, ${s.name}!`;
+      } else {
+        qs('#student-greeting').textContent = `Hello, Student!`;
+      }
+    }
+  })();
+}
+
+// ADMIN DASHBOARD
+ if (me.role === 'admin') {
+  const role = 'admin';
+  const adminId = me.id;
+
+  const parseMarks = form => {
+    form.subject1 = parseInt(form.subject1 || "0");
+    form.subject2 = parseInt(form.subject2 || "0");
+    form.subject3 = parseInt(form.subject3 || "0");
+    return form;
+  };
+
+  const roleQuery = `?adminId=${encodeURIComponent(adminId)}&role=admin`;
+
+  // VIEW ALL TEACHERS (Admin)
+  qs('#admin-view-teachers').onclick = async () => {
+    const res = await fetch(`/admin/teachers${roleQuery}`, {
+      headers: { 'Role': role }
+    });
+    if (!(await checkAuth(res))) return;
+    const arr = await res.json();
+    let html = '';
+    arr.forEach(t => html += `<tr><td>${t.id}</td><td>${t.name}</td><td>${t.password || ''}</td></tr>`);
+    qs('#admin-teacher-table tbody').innerHTML = html;
+  };
+
+
+ // VIEW ALL STUDENTS (Admin)
+qs('#admin-view-students').onclick = async () => {
+  const res = await fetch(`/admin/students?adminId=${encodeURIComponent(me.id)}&role=admin`, {
+    headers: { 'Role': 'admin' }
+  });
+  if (!(await checkAuth(res))) return;
+
+  const arr = await res.json();
+  let html = '';
+
+  arr.forEach(s => {
+    html += `<tr>
+      <td>${s.id}</td>
+      <td>${s.name}</td>
+      <td>${s.subject1 ?? '0'}</td>
+      <td>${s.subject2 ?? '0'}</td>
+      <td>${s.subject3 ?? '0'}</td>
+      <td>${s.total ?? '0'}</td>
+      <td>${safeFixed(s.percentage)}</td>
+      <td>${s.rank ?? 'N/A'}</td>
+    </tr>`;
+  });
+
+  qs('#admin-student-table tbody').innerHTML = html;
+};
+
+ // VIEW ONE TEACHER (Admin)
+qs('#admin-view-one-teacher').onsubmit = async e => {
+  e.preventDefault();
+  const form = Object.fromEntries(new FormData(e.target));
+  const res = await fetch(`/admin/teacher?id=${encodeURIComponent(form.id)}&adminId=${encodeURIComponent(me.id)}&role=admin`, {
+    headers: { 'Role': 'admin' }
+  });
+
+  if (!(await checkAuth(res))) return;
+
+  const ct = res.headers.get("content-type") || "";
+
+  if (res.status === 404) {
+    qs('#admin-teacher-one-table tbody').innerHTML = `<tr><td colspan="3" style="color:red;">Teacher ID not found</td></tr>`;
+    return;
+  }
+
+  if (ct.includes("application/json")) {
+    const t = await res.json();
+    qs('#admin-teacher-one-table tbody').innerHTML = `<tr>
+      <td>${t.id}</td>
+      <td>${t.name}</td>
+      <td>${t.password || ''}</td>
+    </tr>`;
+  } else {
+    const text = await res.text();
+    qs('#admin-teacher-one-table tbody').innerHTML = `<tr><td colspan="3" style="color:red;">Error: ${text}</td></tr>`;
+  }
+};
+
+
+  // VIEW ONE STUDENT (Admin)
+qs('#admin-view-one-student').onsubmit = async e => {
+  e.preventDefault();
+  const form = Object.fromEntries(new FormData(e.target));
+  const res = await fetch(`/admin/student?id=${encodeURIComponent(form.id)}&adminId=${encodeURIComponent(me.id)}&role=admin`, {
+    headers: { 'Role': 'admin' }
+  });
+
+  if (!(await checkAuth(res))) return;
+
+  const ct = res.headers.get("content-type") || "";
+  if (res.status === 404) {
+    qs('#admin-one-stu-table tbody').innerHTML = `<tr><td colspan="8" style="color:red;">Student ID not found</td></tr>`;
+    return;
+  }
+
+  if (ct.includes("application/json")) {
+    const s = await res.json();
+    qs('#admin-one-stu-table tbody').innerHTML = `<tr>
+      <td>${s.id}</td>
+      <td>${s.name}</td>
+      <td>${s.subject1 ?? 0}</td>
+      <td>${s.subject2 ?? 0}</td>
+      <td>${s.subject3 ?? 0}</td>
+      <td>${s.total ?? 0}</td>
+      <td>${safeFixed(s.percentage)}</td>
+      <td>${s.rank ?? 'N/A'}</td>
+    </tr>`;
+  } else {
+    const text = await res.text();
+    qs('#admin-one-stu-table tbody').innerHTML = `<tr><td colspan="8" style="color:red;">Error: ${text}</td></tr>`;
+  }
+};
+
+// ADD TEACHER (Admin)
+ qs('#admin-add-teacher').onsubmit = async e => {
+  e.preventDefault();
+  const form = Object.fromEntries(new FormData(e.target));
+
+if (!form.password) {
+  if (form.id.startsWith("S")) form.password = "pass1";
+  else if (form.id.startsWith("T")) form.password = "teacherpass1";
+}
+
+  const url = `/admin/add-teacher?adminId=${encodeURIComponent(me.id)}&role=admin`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Role': me.role
+    },
+    body: JSON.stringify(form)
+  });
+
+  const ct = res.headers.get("content-type") || "";
+  const json = ct.includes("application/json") ? await res.json() : { error: await res.text() };
+  alert(json.message || json.error || 'Failed to add teacher');
+};
+
+// ADD STUDENTS (Admin)
+  qs('#admin-add-student').onsubmit = async e => {
+  e.preventDefault();
+  const form = Object.fromEntries(new FormData(e.target));
+
+if (!form.password) {
+  if (form.id.startsWith("S")) form.password = "pass1";
+  else if (form.id.startsWith("T")) form.password = "teacherpass1";
+}
+
+  const url = `/admin/add-student?adminId=${encodeURIComponent(me.id)}&role=admin`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Role': me.role
+    },
+    body: JSON.stringify(form)
+  });
+
+  const ct = res.headers.get("content-type") || "";
+  const json = ct.includes("application/json") ? await res.json() : { error: await res.text() };
+  alert(json.message || json.error || 'Failed to add student');
+};
+
+// UPDATE STUDENT (Admin)
+ qs('#admin-update-student').onsubmit = async e => {
+  e.preventDefault();
+  const form = Object.fromEntries(new FormData(e.target));
+  const url = `/admin/update-student?adminId=${encodeURIComponent(me.id)}&role=admin`;
+
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Role': me.role
+    },
+    body: JSON.stringify(form)
+  });
+
+  const ct = res.headers.get("content-type") || "";
+  const json = ct.includes("application/json") ? await res.json() : { error: await res.text() };
+  alert(json.message || json.error || 'Failed to update student');
+};
+
+
+  // DELETE TEACHER (Admin)
+  qs('#admin-delete-teacher').onsubmit = async e => {
+    e.preventDefault();
+    const id = new FormData(e.target).get("id");
+    const res = await fetch(`/admin/delete-teacher?id=${encodeURIComponent(id)}&adminId=${adminId}&role=admin`, {
+      method: 'DELETE',
+      headers: { 'Role': role }
+    });
+    const json = await res.json();
+    alert(json.message || json.error || 'Failed to delete teacher');
+  };
+
+
+ // DELETE STUDENT (Admin)
+qs('#admin-delete-student').onsubmit = async e => {
+  e.preventDefault();
+  const id = new FormData(e.target).get("id");
+  const res = await fetch(`/admin/delete-student?id=${encodeURIComponent(id)}&adminId=${encodeURIComponent(me.id)}&role=admin`, {
+    method: 'DELETE',
+    headers: { 'Role': 'admin' }
+  });
+
+  const ct = res.headers.get("content-type") || "";
+  const out = ct.includes("application/json") ? await res.json() : await res.text();
+
+  alert(out.message || out.error || 'Failed to delete student');
+};
+
+}
+
+
+    //TEACHER DASHBOARD
+      if (me.role === 'teacher') {
+      const roleQuery = `?teacherId=${encodeURIComponent(me.id)}&role=teacher`;
+
+      // ADD student
+      qs('#teacher-add-student').onsubmit = async e => {
+        e.preventDefault();
+        const form = Object.fromEntries(new FormData(e.target));
+
+
+if (!form.password) {
+  if (form.id.startsWith("S")) form.password = "pass1";
+  else if (form.id.startsWith("T")) form.password = "teacherpass1";
+}
+
+        const res = await fetch(`/teacher/add-student${roleQuery}`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(form)
+        });
+        const json = await res.json();
+        alert(json.message || json.error);
+      };
+
+      // VIEW ALL students
+      qs('#teacher-view-all').onclick = async () => {
+        const res = await fetch(`/teacher/students${roleQuery}`);
+        const arr = await res.json();
+        let html = '';
+        arr.forEach(s => {
+          html += `<tr>
+            <td>${s.id}</td><td>${s.name}</td>
+            <td>${s.subject1}</td><td>${s.subject2}</td><td>${s.subject3}</td>
+            <td>${s.total}</td><td>${s.percentage.toFixed(2)}</td><td>${s.rank}</td>
+          </tr>`;
+        });
+        qs('#teacher-students-table tbody').innerHTML = html;
+      };
+
+      // VIEW ONE student
+      qs('#teacher-view-one').onsubmit = async e => {
+        e.preventDefault();
+        const form = Object.fromEntries(new FormData(e.target));
+        const res = await fetch(`/teacher/student?id=${encodeURIComponent(form.id)}&teacherId=${encodeURIComponent(me.id)}&role=teacher`);
+        const s = await res.json();
+        if (s.error) {
+          qs('#teacher-view-one-table tbody').innerHTML = `<tr><td colspan="8" style="color:red;">${s.error}</td></tr>`;
+        } else {
+          qs('#teacher-view-one-table tbody').innerHTML = `<tr>
+            <td>${s.id}</td><td>${s.name}</td>
+            <td>${s.subject1}</td><td>${s.subject2}</td><td>${s.subject3}</td>
+            <td>${s.total}</td><td>${s.percentage.toFixed(2)}</td><td>${s.rank}</td>
+          </tr>`;
+        }
+      };
+//UPDATE STUDENT
+     qs('#teacher-update-student').onsubmit = async e => {
+      e.preventDefault();
+      const form = Object.fromEntries(new FormData(e.target));
+
+      const url = `/teacher/update-student?teacherId=${encodeURIComponent(me.id)}&role=${encodeURIComponent(me.role)}`;
+
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Role': me.role
+        },
+        body: JSON.stringify(form)
+      });
+
+      const ct = res.headers.get("content-type") || "";
+      const out = ct.includes("application/json") ? await res.json() : await res.text();
+      alert(out.message || out.error || out);
+    };
+
+
+      // DELETE student
+      qs('#teacher-delete-student').onsubmit = async e => {
+        e.preventDefault();
+        const id = new FormData(e.target).get("id");
+        const res = await fetch(`/teacher/delete-student?id=${encodeURIComponent(id)}&teacherId=${encodeURIComponent(me.id)}&role=teacher`, {
+          method: 'DELETE'
+        });
+        const json = await res.json();
+        alert(json.message || json.error || 'Delete failed');
+      };
+    }
+
+    // STUDENT DASHBOARD
+    if (me.role === 'student') {
+      (async () => {
+        const res = await fetch(`/student/me?id=${encodeURIComponent(me.id)}&role=student`);
+        if (!(await checkAuth(res))) return;
+        if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
+          const s = await res.json();
+          qs('#student-info-table tbody').innerHTML = `<tr>
+            <td>${s.id}</td>
+            <td>${s.name}</td>
+            <td>${s.subject1}</td>
+            <td>${s.subject2}</td>
+            <td>${s.subject3}</td>
+            <td>${s.total}</td>
+            <td>${safeFixed(s.percentage)}</td>
+            <td>${s.rank ?? 'N/A'}</td>
+          </tr>`;
+        } else {
+          const text = await res.text();
+          qs('#student-info-table tbody').innerHTML = `<tr><td colspan="8" style="color:red;">Error: ${text}</td></tr>`;
+        }
+      })();
+    }
+
+
+    // Logout button
+    qs('#logout-btn').onclick = () => location.href = '/';
+
+    // LOGIN form submission
+    qs('#login-form').onsubmit = async e => {
+      e.preventDefault();
+      const form = Object.fromEntries(new FormData(e.target));
+      const res = await fetch('/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form)
+      });
+
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const j = await res.json();
+        if (j.error) {
+          qs('#login-msg').textContent = j.error;
+          return;
+        }
+        if (j.id && j.role) location.href = `/?id=${encodeURIComponent(j.id)}&role=${encodeURIComponent(j.role)}`;
+        else qs('#login-msg').textContent = 'Login failed.';
+      } else {
+        // HTML form returned (change password screen)
+        const html = await res.text();
+        document.body.innerHTML = html;
+      }
+    };
+
+
+    // Collapse all sections initially
+    document.querySelectorAll('.card').forEach(card => {
+      card.classList.add('collapsed');
+      const btn = card.querySelector('.toggle-btn');
+      if (btn) {
+        btn.textContent = '+';
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Collapse/Expand on toggle button click
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.card');
+        card.classList.toggle('collapsed');
+        const isCollapsed = card.classList.contains('collapsed');
+        btn.textContent = isCollapsed ? '+' : '−';
+        btn.setAttribute('aria-expanded', !isCollapsed);
+      });
+    });
+
+
+</script>
+
+</body>
+</html>
